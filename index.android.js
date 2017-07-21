@@ -6,8 +6,11 @@ import {
   Alert,
   Button,
   View,
+  Vibration,
   WebView
 } from 'react-native';
+
+import Camera from 'react-native-camera';
 
 const inject_js = `
 document.addEventListener("message", function(event) {
@@ -22,24 +25,51 @@ export default class attendance extends Component {
   constructor( props ) {
     super( props );
     this.wvsemcomp = null;
+    this.camera = null;
+    this.state = {
+      count: 0,
+      last_read_ts: 0,
+      last_read_code: "",
+    };
+
+    this.onRead = e => {
+      let now = new Date().getTime();
+      let state = this.state;
+      let diff_ts = now - state.last_read_ts;
+      if (e.data !== state.last_read_code && diff_ts > 500 || diff_ts > 3000) {
+        state.last_read_code = e.data;
+        state.last_read_ts = now;
+        this.wvsemcomp.postMessage(state.last_read_code);
+        state.count += 1;
+        Vibration.vibrate(70);
+        this.setState(state);
+      }
+    }
   }
   render() {
-
+    let count = this.state.count;
     return (
       <View style={styles.flex1}>
         <View style={[styles.center, styles.flex1]}>
-          <Text style={styles.welcome}>
-            [barcode scanner]
-          </Text>
-          <Button
-            onPress={() => this.wvsemcomp.postMessage('9167910')}
-            title="Inserir NUSP"
-          />
+          <Camera
+            ref={ cam => this.camera = cam }
+            style={[styles.flex1, styles.center, styles.stretch]}
+            aspect={Camera.constants.Aspect.stretch}
+            onBarCodeRead={this.onRead}
+          >
+            <Text style={[styles.flex1]}> </Text>
+            <View style={[styles.row, styles.px1_5]}>
+              <View style={[styles.flex1]}/>
+              <View style={[styles.laser_bars, styles.flex10]}/>
+              <View style={[styles.flex1]}/>
+            </View>
+            <Text style={[styles.flex1, styles.counter]}>{count}</Text>
+          </Camera>
         </View>
         <View style={[styles.flex4]}>
           <WebView
             source={{uri: 'https://semcomp.icmc.usp.br/20/administracao/presenca/'}}
-            ref={( wvsemcomp ) => this.wvsemcomp = wvsemcomp}
+            ref={wvsemcomp => this.wvsemcomp = wvsemcomp}
             injectedJavaScript={inject_js}
           />
         </View>
@@ -61,20 +91,37 @@ const styles = StyleSheet.create({
   flex4: {
     flex: 4,
   },
+  flex10: {
+    flex: 10,
+  },
+  px1_5: {
+    height: 6,
+  },
   center: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  welcome: {
-    fontSize: 20,
+  row: {
+    flexDirection: 'row',
+  },
+  stretch: {
+    alignSelf: 'stretch',
+  },
+  counter: {
+    fontSize: 16,
     textAlign: 'center',
     margin: 10,
+    color: '#FFF',
+    textShadowColor: '#000000',
+    textShadowOffset: { width: 0, height: 2},
+    textShadowRadius: 7,
   },
-  bgblue: {
-    backgroundColor: '#5588FF'
-  },
-  bgred: {
-    backgroundColor: '#FF5555'
+  laser_bars: {
+    borderTopColor: '#FF3333',
+    borderBottomColor: '#FF3333',
+    borderTopWidth: 2,
+    borderBottomWidth: 2,
+    opacity: 0.5,
   }
 });
 
