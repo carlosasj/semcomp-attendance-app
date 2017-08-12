@@ -13,10 +13,19 @@ import Camera from 'react-native-camera';
 const inject_js = `
 document.addEventListener("message", function(event) {
   var scope = angular.element(document.querySelector("body > main > div > div.ng-scope")).scope();
+  scope.insideApp = true;
   scope.code = event.data;
   scope.$digest();
   scope.register();
 }, false);
+
+$( document ).ready(function() {
+  try {
+    var scope = angular.element(document.querySelector("body > main > div > div.ng-scope")).scope();
+    scope.insideApp = true;
+    scope.$digest();
+  } catch(e) {}
+});
 `;
 
 export default class attendance extends Component {

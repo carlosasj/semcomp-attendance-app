@@ -1,4 +1,4 @@
-package com.attendance;
+package br.usp.icmc.semcomp.attendance;
 
 import com.facebook.react.ReactActivity;
 
