@@ -3,8 +3,6 @@ import {
   AppRegistry,
   StyleSheet,
   Text,
-  Alert,
-  Button,
   View,
   Vibration,
   WebView
@@ -56,6 +54,7 @@ export default class attendance extends Component {
             style={[styles.flex1, styles.center, styles.stretch]}
             aspect={Camera.constants.Aspect.stretch}
             onBarCodeRead={this.onRead}
+            barCodeTypes={['code39', 'code93', 'interleaved2of5']}
           >
             <Text style={[styles.flex1]}> </Text>
             <View style={[styles.row, styles.px1_5]}>
